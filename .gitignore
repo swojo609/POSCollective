@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+instance/
+.pytest_cache/
+.coverage
+.open_venv.ps1
+.open_venv.bat
