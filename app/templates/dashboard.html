@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, intial-scale=1">
+    <title>POS Collective | Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>POS Collective</h1>
+        <h2>POS Support Incident Board</h2>
+
+        <form action="{{ url_for('logout') }}" method="post">
+            <button type="submit">Log out</button>
+        </form>
+    </header>
+
+    <main>
+        <h2>Tickets</h2>
+
+        <nav ario-label="Ticket status filters">
+            <a href="{{ url_for('dashboard', satus='all' )}}">All</a>
+            <a href="{{ url_for('dashboard', satus='Open' )}}">Open</a>
+            <a href="{{ url_for('dashboard', satus='Close' )}}">Close</a>
+        </nav>
+        <table>
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>Created By</th>
+                    <th>Updated</th>
+                    <th>NCR Case #</th>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Version(s)</th>
+                    <th>HW/SW</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                <tr>
+                    <td>{{ ticket.ticket_key }}</td>
+                    <td>{{ ticket.created_by.full_name or ticket.created_by.username }}</td>
+                    <td>-</td>
+                    <td>{{ ticket.ncr_case_number or "-" }}</td>
+                    <td>{{ ticket.title }}</td>
+                    <td>{{ ticket.ticket_type }}</td>
+                    <td>-</td>
+                    <td>{{ ticket.hardware_software or "-" }}</td>
+                    <td>{{ ticket.status }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9">No tickets found for this filter</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+</body>
+</html>

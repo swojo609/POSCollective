@@ -65,8 +65,6 @@ class Ticket(db.Model):
     site = db.Column(db.String(255))
     hardware_software = db.Column(db.String(20))
 
-    created_by_id = db.Column(db.String(20))
-
     created_by_id = db.Column(
         db.Integer,
         db.ForeignKey("users.id"),

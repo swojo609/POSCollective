@@ -7,6 +7,7 @@ from flask_login import login_user, logout_user, login_required
 
 from app.extensions import db, migrate, login_manager
 from app import models
+from app.models import Ticket
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -64,6 +65,20 @@ def create_app():
     @app.route("/dashboard")
     @login_required
     def dashboard():
-        return "POSCollective dashboard - login successful."
+        status = request.args.get("status", "Open")
+
+        query = models.Ticket.query
+
+        if status in ("Open", "Closed"):
+            query = query.filter_by(status=status)
+
+        tickets = query.all()
+
+        return render_template(
+            "dashboard.html",
+            tickets=tickets,
+            current_status=status,
+        )
+        # return "POSCollective dashboard - login successful."
 
     return app
