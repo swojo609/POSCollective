@@ -31,15 +31,15 @@
         <table>
             <thead>
                 <tr>
-                    <th>Ticket ID</th>
-                    <th>Created By</th>
-                    <th>Updated</th>
-                    <th>NCR Case #</th>
-                    <th>Title</th>
-                    <th>Type</th>
-                    <th>Version(s)</th>
-                    <th>HW/SW</th>
-                    <th>Status</th>
+                    <th><a href="{{ url_for('dashboard', status=current_status, sort='ticket_key', direction='asc' if sort_by == 'ticket_key' and direction == 'desc' else 'desc') }}">Ticket ID</a></th>
+                    <th><a href="{{ url_for('dashboard', status=current_status, sort='created_by', direction='asc' if sort_by == 'created_by' and direction == 'desc' else 'desc') }}">Created By</a></th>
+                    <th><a href="{{ url_for('dashboard', status=current_status, sort='updated_at', direction='asc' if sort_by == 'updated_at' and direction == 'desc' else 'desc') }}">Updated</a></th>
+                    <th><a href="{{ url_for('dashboard', status=current_status, sort='ncr_case_number', direction='asc' if sort_by == 'ncr_case_number' and direction == 'desc' else 'desc') }}">NCR Case #</a></th>
+                    <th><a href="{{ url_for('dashboard', status=current_status, sort='title', direction='asc' if sort_by == 'title' and direction == 'desc' else 'desc') }}">Title</a></th>
+                    <th><a href="{{ url_for('dashboard', status=current_status, sort='ticket_type', direction='asc' if sort_by == 'ticket_type' and direction == 'desc' else 'desc') }}">Type</a></th>
+                    <th><a href="{{ url_for('dashboard', status=current_status, sort='versions', direction='asc' if sort_by == 'versions' and direction == 'desc' else 'desc') }}">Version(s)</a></th>
+                    <th><a href="{{ url_for('dashboard', status=current_status, sort='hardware_software', direction='asc' if sort_by == 'hardware_software' and direction == 'desc' else 'desc') }}">HW/SW</a></th>
+                    <th><a href="{{ url_for('dashboard', status=current_status, sort='status', direction='asc' if sort_by == 'status' and direction == 'desc' else 'desc') }}">Status</a></th>
                 </tr>
             </thead>
             <tbody>

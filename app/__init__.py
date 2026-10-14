@@ -9,6 +9,8 @@ from app.extensions import db, migrate, login_manager
 from app import models
 from app.models import Ticket
 
+from sqlalchemy import func, select
+
 @login_manager.user_loader
 def load_user(user_id):
     try:
@@ -177,11 +179,51 @@ def create_app():
     @login_required
     def dashboard():
         status = request.args.get("status", "Open")
+        sort_by = request.args.get("sort", "updated_at")
+        direction = request.args.get("direction", "desc")
+
+        sortable_columns = {
+            "ticket_key": models.Ticket.id,
+            "created_by": func.coalesce(
+                func.nullif(models.User.full_name, ""),
+                models.User.username,
+            ),
+            "updated_at": models.Ticket.updated_at,
+            "ncr_case_number": models.Ticket.ncr_case_number,
+            "title": models.Ticket.title,
+            "ticket_type": models.Ticket.ticket_type,
+            "versions": (
+                select(func.min(models.TicketVersion.version))
+                .where(models.TicketVersion.ticket_id == models.Ticket.id)
+                .scalar_subquery()
+            ),
+            "hardware_software": models.Ticket.hardware_software,
+            "status": models.Ticket.status,
+        }
+
+        if sort_by not in sortable_columns:
+            sort_by = "updated_at"
+
+        if direction not in ("asc", "desc"):
+            direction = "desc"
 
         query = models.Ticket.query
 
         if status in ("Open", "Closed"):
             query = query.filter_by(status=status)
+
+        if sort_by == "created_by":
+            query = query.join(
+                models.User,
+                models.Ticket.created_by_id == models.User.id,
+            )
+
+        sort_column = sortable_columns[sort_by]
+
+        if direction == "desc":
+            query = query.order_by(sort_column.desc(), models.Ticket.id.desc())
+        else:
+            query = query.order_by(sort_column.asc(), models.Ticket.id.asc())
 
         tickets = query.all()
 
@@ -189,6 +231,8 @@ def create_app():
             "dashboard.html",
             tickets=tickets,
             current_status=status,
+            sort_by=sort_by,
+            direction=direction,
         )
         # return "POSCollective dashboard - login successful."
 
