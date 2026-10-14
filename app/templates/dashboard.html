@@ -47,11 +47,11 @@
                 <tr>
                     <td>{{ ticket.ticket_key }}</td>
                     <td>{{ ticket.created_by.full_name or ticket.created_by.username }}</td>
-                    <td>-</td>
+                    <td>{{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') if ticket.updated_at else "-" }}</td>
                     <td>{{ ticket.ncr_case_number or "-" }}</td>
                     <td>{{ ticket.title }}</td>
                     <td>{{ ticket.ticket_type }}</td>
-                    <td>-</td>
+                    <td>{{ ticket.versions | map(atttributes='version') | unique | join(', ') or "-" }}</td>
                     <td>{{ ticket.hardware_software or "-" }}</td>
                     <td>{{ ticket.status }}</td>
                 </tr>
