@@ -21,6 +21,12 @@ class User(UserMixin, db.Model):
     company = db.Column(db.String(150), nullable=True)
 
     role = db.Column(db.String(20), nullable=False, default="Member")
+    approval_status = db.Column(
+        db.String(20),
+        nullable=False,
+        default="Pending",
+        server_default="Pending",
+    )
     is_active = db.Column(db.Boolean, nullable=False, default=True)
 
     full_name = db.Column(db.String(150))

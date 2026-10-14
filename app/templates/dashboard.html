@@ -8,21 +8,25 @@
 </head>
 <body>
     <header>
-        <h1>POS Collective</h1>
-        <h2>POS Support Incident Board</h2>
+    <h1>POS Collective</h1>
+    <h2>POS Support Incident Board</h2>
 
-        <form action="{{ url_for('logout') }}" method="post">
-            <button type="submit">Log out</button>
-        </form>
+    {% if current_user.role == "Owner" %}
+        <p><a href="{{ url_for('admin_users') }}">User Approvals</a></p>
+    {% endif %}
+
+    <form action="{{ url_for('logout') }}" method="post">
+        <button type="submit">Log out</button>
+    </form>
     </header>
 
     <main>
         <h2>Tickets</h2>
 
-        <nav ario-label="Ticket status filters">
-            <a href="{{ url_for('dashboard', satus='all' )}}">All</a>
-            <a href="{{ url_for('dashboard', satus='Open' )}}">Open</a>
-            <a href="{{ url_for('dashboard', satus='Close' )}}">Close</a>
+        <nav aria-label="Ticket status filters">
+            <a href="{{ url_for('dashboard', status='all' )}}">All</a>
+            <a href="{{ url_for('dashboard', status='Open' )}}">Open</a>
+            <a href="{{ url_for('dashboard', status='Closed' )}}">Close</a>
         </nav>
         <table>
             <thead>

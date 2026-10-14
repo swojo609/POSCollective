@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - POS Collective</title>
+</head>
+<body>
+    <h1>POS Collective Registration</h1>
+    <p>Create an account. Your account will requireOWner approval before you can log in</p>
+
+    {%  with message = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in message %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('register') }}">
+        <div>
+            <label for="username">Email Address (used to log in)</label>
+            <input type="email" id="username" name="username" required maxlength="255" autocomplete="email">
+        </div>
+        <small>This will be your username and email address.</small>
+
+        <div>
+            <label for="full_name">Full Name</label>
+            <input type="text" id="full_name" name="full_name" required maxlength="150">
+        </div>
+
+        <div>
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="new-password">
+        </div>
+
+        <div>
+            <label for="confirm_password">Confirm Password</label>
+            <input type="password" id="confirm_password" name="confirm_password" required autocomplete="new-password">
+        </div>
+        <button type="submit">Register</button>
+    </form>
+
+    <p><a href="{{ url_for('login') }}">Back to Login</a></p>
+</body>
+</html>

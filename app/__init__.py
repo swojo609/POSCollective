@@ -3,7 +3,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from flask import Flask, render_template, redirect, url_for, request, flash
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required, current_user
 
 from app.extensions import db, migrate, login_manager
 from app import models
@@ -34,6 +34,56 @@ def create_app():
     login_manager.login_message = "Please log in to access POSCollective"
     login_manager.init_app(app)
 
+    @app.route("/admin/users")
+    @login_required
+    def admin_users():
+        if current_user.role != "Owner":
+            flash("You are not authorized to access user approvals.", "error")
+            return redirect(url_for("dashboard"))
+
+        pending_users = models.User.query.filter_by(
+            approval_status="Pending"
+        ).order_by(models.User.id.asc()).all()
+
+        return render_template(
+            "admin_users.html",
+            pending_users=pending_users,
+        )
+
+    @app.route("/admin/users/<int:user_id>/review", methods=["POST"])
+    @login_required
+    def review_user(user_id):
+        if current_user.role != "Owner":
+            flash("You are not authorized to manage user approvals.", "error")
+            return redirect(url_for("dashboard"))
+
+        user = db.session.get(models.User, user_id)
+
+        if not user:
+            flash("User not found.", "error")
+            return redirect(url_for("admin_users"))
+
+        if user.approval_status != "Pending":
+            flash("This account has already been reviewed.", "error")
+            return redirect(url_for("admin_users"))
+
+        decision = request.form.get("decision")
+
+        if decision == "approve":
+            user.approval_status = "Approved"
+            db.session.commit()
+            flash(f"Approved account: {user.email}", "success")
+
+        elif decision == "reject":
+            user.approval_status = "Rejected"
+            db.session.commit()
+            flash(f"Rejected account: {user.email}", "success")
+
+        else:
+            flash("Invalid review decision.", "error")
+
+        return redirect(url_for("admin_users"))
+
     @app.route("/")
     def index():
         # if not login_required:
@@ -44,16 +94,77 @@ def create_app():
     @app.route("/login", methods=["GET", "POST"])
     def login():
         if request.method == "POST":
-            username = request.form.get("username", "").strip()
+            username = request.form.get("username", "").strip().lower()
             password = request.form.get("password", "")
 
             user = models.User.query.filter_by(username=username).first()
 
-            if user and user.is_active and user.check_password(password):
+            if( 
+                user
+                and user.is_active
+                and user.approval_status == "Approved"
+                and user.check_password(password)
+            ):
                 login_user(user)
                 return redirect(url_for("dashboard"))
 
+            flash(
+                "Login failed. Check your credentials or account approval status.",
+                "error",
+            )
+
         return render_template("login.html")
+
+    @app.route("/register", methods=["GET", "POST"])
+    def register():
+        if request.method == "POST":
+            username = request.form.get("username", "").strip().lower()
+            email = username
+            full_name = request.form.get("full_name", "").strip()
+            password = request.form.get("password", "")
+            confirm_password = request.form.get("confirm_password", "")
+
+            if not username or not password:
+                flash("Email address and password are required.", "error")
+                return render_template("register.html")
+
+            if "@" not in username or "." not in username.split("@")[-1]:
+                flash("Enter a valid email address." , "error")
+                return render_template("register.html")
+
+            if password != confirm_password:
+                flash("Passwords do not match.", "error")
+                return render_template("register.html")
+
+            existing_user = models.User.query.filter(
+                (models.User.username == username)
+                | (models.User.email == email)
+            ).first()
+
+            if existing_user:
+                flash("That username or email is already registered.", "error")
+                return render_template("register.html")
+
+            user = models.User(
+                username=username,
+                email=email,
+                full_name=full_name or None,
+                role="Member",
+                approval_status="Pending",
+                is_active=True,
+            )
+            user.set_password(password)
+
+            db.session.add(user)
+            db.session.commit()
+
+            flash(
+                "Registration submitted. Your account is awaiting Owner approval.",
+                "success",
+            )
+            return redirect(url_for("login"))
+
+        return render_template("register.html")
 
     @app.route("/logout", methods=["POST"])
     @login_required

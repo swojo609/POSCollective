@@ -1,0 +1,69 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>POS Collective | User Approval</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>POS Collective</h1>
+        <h2>User Approval</h2>
+
+        <nav aria-label="Main navigation">
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+
+            <form action="{{ url_for('logout') }}" method="post">
+                <button type="submit">Log out</button>
+            </form>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Pending Registrations</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <p class="{{ category }}">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Full Name</th>
+                    <th>Registered</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in pending_users %}
+                <tr>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.full_name or "-" }}</td>
+                    <td>{{ user.create_at.strftime("%Y-%m-%d") if user.create_at else "-" }}</td>
+                    <td>
+                        <form action="{{ url_for('review_user', user_id=user.id) }}" method="post">
+                            <button type="submit" name="decision" value="approve">
+                                Approve
+                            </button>
+                            <button type="submit" name="decision" value="reject">
+                                Reject
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4">No pending registrations.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+</body>
+</html>
+```

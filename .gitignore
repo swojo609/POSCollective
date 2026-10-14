@@ -9,3 +9,4 @@ instance/
 .coverage
 .open_venv.ps1
 .open_venv.bat
+.db_upgrade.bat
