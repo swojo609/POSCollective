@@ -35,6 +35,7 @@
             <a href="{{ url_for('dashboard', status='all', sort=sort_by, direction=direction, per_page=per_page) }}">All</a>
             <a href="{{ url_for('dashboard', status='Open', sort=sort_by, direction=direction, per_page=per_page) }}">Open</a>
             <a href="{{ url_for('dashboard', status='Closed', sort=sort_by, direction=direction, per_page=per_page) }}">Closed</a>
+            <a href="{{ url_for('create_ticket') }}">+ New Incident</a>
         </nav>
 
         <div class="pagination-controls">
@@ -108,13 +109,17 @@
             <tbody>
                 {% for ticket in tickets %}
                 <tr>
-                    <td>{{ ticket.ticket_key }}</td>
+                    <td>
+                        <a href="{{ url_for('ticket_detail', ticket_id=ticket.id) }}">
+                            {{ ticket.ticket_key }}
+                        </a>
+                    </td>
                     <td>{{ ticket.created_by.full_name or ticket.created_by.username }}</td>
                     <td>{{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') if ticket.updated_at else "-" }}</td>
                     <td>{{ ticket.ncr_case_number or "-" }}</td>
                     <td>{{ ticket.title }}</td>
                     <td>{{ ticket.ticket_type }}</td>
-                    <td>{{ ticket.versions | map(atttribute='version') | unique | join(', ') or "-" }}</td>
+                    <td>{{ ticket.versions | map(attribute='version') | unique | join(', ') or "-" }}</td>
                     <td>{{ ticket.hardware_software or "-" }}</td>
                     <td>{{ ticket.status }}</td>
                 </tr>

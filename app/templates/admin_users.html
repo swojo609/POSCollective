@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,8 +7,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <header>
+    <header class="admin-header">
         <h1>POS Collective</h1>
+
+        <button type="button" id="theme-toggle" class="theme-switch" role="switch" aria-checked="false" aria-label="Toggle dark mode">
+            <span class="theme-icon" aria-hidden="true">☼</span>
+            <span class="theme-icon" aria-hidden="true">☾</span>
+            <span class="theme-switch-knob"></span>
+        </button>
+
         <h2>User Approval</h2>
 
         <nav aria-label="Main navigation">

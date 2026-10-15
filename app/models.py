@@ -70,7 +70,7 @@ class Ticket(db.Model):
     # NCR's status is independent of our internal ticket status.
     ncr_state = db.Column(db.String(50))
 
-    site = db.Column(db.String(255))
+    # site = db.Column(db.String(255))
     hardware_software = db.Column(db.String(20))
 
     created_by_id = db.Column(

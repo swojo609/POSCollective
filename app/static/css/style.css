@@ -58,6 +58,16 @@ header {
     /* background: #ffffff; */
     /* border-bottom: 1px solid #dce2ea; */
 }
+/* Header to adjust switch movement on admin_users.html */
+.admin-header {
+    justify-content: flex-start;
+    gap: 20px;
+}
+
+.admin-header nav {
+    margin-left: auto;
+    margin-bottom: 0;
+}
 
 header h1 {
     margin: 0;
@@ -119,8 +129,10 @@ nav a:hover {
 .table-container {
     width: 100%;
     overflow-x: auto;
-    background: #ffffff;
-    border: 1px solid #dce2ea;
+    background: var(--surface-bg);
+    border: 1px solid var(--header-border);
+    /* background: #ffffff; */
+    /* border: 1px solid #dce2ea; */
     border-radius: 8px;
 }
 
@@ -233,9 +245,12 @@ tbody tr:last-child td {
 }
 
 .pagination-navigation strong {
-    color: #fff;
-    background-color: #2457a7;
-    border-color: #2457a7;
+    color: var(--surface-bg);
+    background-color: var(--link-color);
+    border-color: var(--link-color);
+    /* color: #fff; */
+    /* background-color: #2457a7; */
+    /* border-color: #2457a7; */
 }
 
 .pagination-navigation span {
@@ -283,8 +298,60 @@ tbody tr:last-child td {
 /* On */
 .theme-icon:first-child {
     color: #f8d66d;
+    text-shadow: 0 0 6px #f8d66d, 0 0 12px #f8d66d;
 }
 /* Off */
 .theme-icon:nth-child(2) {
     color: #f3f4f6;
+}
+
+/* New incident form */
+.ticket-form {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px;
+    background: var(--surface-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.ticket-form label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.ticket-form input,
+.ticket-form select,
+.ticket-form textarea {
+    width: 100%;
+    margin-bottom: 18px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    color: var(--text-color);
+    background: var(--surface-bg);
+    font: inherit;
+}
+
+.ticket-form textarea {
+    min-height: 240px;
+    resize: vertical;
+}
+
+.ticket-form button {
+    margin-top: 4px;
+}
+
+.ticket-form .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+    font-weight: 400;
+}
+
+.ticket-form .checkbox-label input {
+    width: auto;
+    margin: 0;
 }

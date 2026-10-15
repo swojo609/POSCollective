@@ -255,4 +255,88 @@ def create_app():
         )
         # return "POSCollective dashboard - login successful."
 
+    @app.route("/tickets/new", methods=["GET","POST"])
+    @login_required
+    def create_ticket():
+        if request.method == "POST":
+            title = request.form.get("title", "").strip()
+            ticket_type = request.form.get("ticket_type", "").strip()
+
+            if not title or not ticket_type:
+                flash("Title and incident type are required.", "error")
+                return render_template("ticket_form.html")
+
+            ticket = models.Ticket(
+                title=title,
+                description=request.form.get("description", "").strip(),
+                ncr_case_number=request.form.get("ncr_case_number", "").strip() or None,
+                encor_jira_number=request.form.get("encor_jira_number", "").strip() or None,
+                encor_jira_na=request.form.get("encor_jira_na") == "yes",
+                ticket_type=ticket_type,
+                priority=request.form.get("priority", "Medium"),
+                # site=request.form.get("site", "").strip() or None,
+                hardware_software=request.form.get("hardware_software") or None,
+                created_by_id=current_user.id,
+            )
+
+            db.session.add(ticket)
+            db.session.flush()
+
+            if ticket_type == "ENCOR":
+                version = request.form.get("version", "").strip()
+                service_pack = request.form.get("service_pack", "-").strip()
+
+                if version:
+                    ticket_version = models.TicketVersion(
+                        ticket_id=ticket.id,
+                        version=version,
+                        service_pack=None if service_pack == "-" else service_pack,
+                    )
+                    db.session.add(ticket_version)
+
+            elif ticket_type == "SCO":
+                adk_version = request.form.get("adk_version", "").strip()
+                tb_version = request.form.get("tb_version", "").strip()
+
+                if adk_version or tb_version:
+                    ticket_version = models.TicketVersion(
+                        ticket_id=ticket.id,
+                        version=f"ADK{adk_version} TB{tb_version}",
+                    )
+                    db.session.add(ticket_version)
+
+            elif ticket_type == "ISS45":
+                iss45_version = request.form.get("iss45_version", "").strip()
+
+                if iss45_version:
+                    ticket_version = models.TicketVersion(
+                        ticket_id=ticket.id,
+                        version=iss45_version,
+                    )
+                    db.session.add(ticket_version)
+
+            elif ticket_type == "Connected Payments":
+                pos_dll = request.form.get("pos_dll", "").strip()
+                eps_dll = request.form.get("eps_dll", "").strip()
+
+                if pos_dll or eps_dll:
+                    ticket_version = models.TicketVersion(
+                        ticket_id=ticket.id,
+                        version=f"POS{pos_dll} EPS{eps_dll}",
+                    )
+                    db.session.add(ticket_version)
+
+            db.session.commit()
+
+            flash(f"Incident {ticket.ticket_key} created successfully.", "success")
+            return redirect(url_for("dashboard"))
+
+        return render_template("ticket_form.html")
+
+    @app.route("/tickets/<int:ticket_id>")
+    @login_required
+    def ticket_detail(ticket_id):
+        ticket = models.Ticket.query.get_or_404(ticket_id)
+        return render_template("ticket_detail.html", ticket=ticket)
+                                          
     return app

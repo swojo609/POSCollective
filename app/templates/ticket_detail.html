@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ ticket.ticket_key }} - POSCollective</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/theme.js') }}" defer></script>
+</head>
+<body>
+    <main class="container">
+        <p><a href="{{ url_for('dashboard') }}">← Back to Dashboard</a></p>
+
+        <h1>{{ ticket.ticket_key }} — {{ ticket.title }}</h1>
+
+        <p><strong>Status:</strong> {{ ticket.status }}</p>
+        <p><strong>Type:</strong> {{ ticket.ticket_type }}</p>
+        <p><strong>Priority:</strong> {{ ticket.priority or "-" }}</p>
+        <p><strong>NCR Case #:</strong> {{ ticket.ncr_case_number or "-" }}</p>
+        <p><strong>Created By:</strong> {{ ticket.created_by.full_name or ticket.created_by.username }}</p>
+        <p><strong>Created:</strong> {{ ticket.created_at.strftime('%Y-%m-%d %H:%M') if ticket.created_at else "-" }}</p>
+        <p><strong>Updated:</strong> {{ ticket.updated_at.strftime('%Y-%m-%d %H:%M') if ticket.updated_at else "-" }}</p>
+
+        <h2>Description</h2>
+        <p>{{ ticket.description or "No description provided." }}</p>
+
+        <h2>Software Versions</h2>
+        {% if ticket.versions %}
+            <ul>
+                {% for version in ticket.versions %}
+                    <li>{{ version.version }}{% if version.service_pack %} {{ version.service_pack }}{% endif %}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No software versions recorded.</p>
+        {% endif %}
+    </main>
+</body>
+</html>

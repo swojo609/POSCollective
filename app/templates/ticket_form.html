@@ -1,0 +1,225 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Incident - POSCollective</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/theme.js') }}" defer></script>
+</head>
+<body>
+    <header>
+        <h1>POS Collective</h1>
+        <h2>New Incident</h2>
+        <a href="{{ url_for('dashboard') }}">Cancel</a>
+    </header>
+
+    <main>
+        <form method="post" class="ticket-form">
+            <label for="title">Title *</label>
+            <input id="title" name="title" type="text" required maxlength="255">
+
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="5"></textarea>
+
+            <label for="ticket_type">Incident Type *</label>
+            <select id="ticket_type" name="ticket_type" required>
+                <option value="">Select a type</option>
+                <option value="ENCOR">ENCOR</option>
+                <option value="SCO">SCO</option>
+                <option value="ISS45">ISS45</option>
+                <option value="Connected Payments">Connected Payments</option>
+            </select>
+
+            <label for="priority">Priority</label>
+            <select id="priority" name="priority">
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+                <option value="Critical">Critical</option>
+            </select>
+
+            <label for="ncr_case_number">NCR Case Number</label>
+            <input id="ncr_case_number" name="ncr_case_number" type="text" maxlength="50">
+
+            <label for="encor_jira_number">Encor Jira Number</label>
+            <input id="encor_jira_number" name="encor_jira_number" type="text" maxlength="100">
+
+            <label class="checkbox-label">
+                <input type="checkbox" name="encor_jira_na" value="yes">
+                Encor/Jira Not Applicable
+            </label>
+            <!-- 
+            <label for="site">Site</label>
+            <input id="site" name="site" type="text" maxlength="255"> -->
+
+            <label for="hardware_software">Hardware / Software</label>
+            <select id="hardware_software" name="hardware_software">
+                <option value="">Select one</option>
+                <option value="Hardware">Hardware</option>
+                <option value="Software">Software</option>
+                <option value="Both">Both</option>
+            </select>
+            
+            
+            <div id="version-fields" hidden>
+                <h3>Software Versions</h3>
+
+                <div id="encor-fields" hidden>
+                    <label for="version">Version *</label>
+                    <select id="version" name="version" disabled>
+                        <option value="">Select a version</option>
+                        <option value="17.0">17.0</option>
+                        <option value="16.0">16.0</option>
+                        <option value="15.0">15.0</option>
+                        <option value="14.0">14.0</option>
+                        <option value="13.0">13.0</option>
+                        <option value="12.1">12.1</option>
+                        <option value="12.0">12.0</option>
+                        <option value="11.1">11.1</option>
+                        <option value="11.0">11.0</option>
+                        <option value="10.1">10.1</option>
+                        <option value="10.0">10.0</option>
+                        <option value="9.2">9.2</option>
+                        <option value="9.0">9.0</option>
+                        <option value="8.1">8.1</option>
+                        <option value="8.0">8.0</option>
+                        <option value="7.1">7.1</option>
+                        <option value="7.0">7.0</option>
+                        <option value="6.3">6.3</option>
+                        <option value="6.2">6.2</option>
+                        <option value="6.1">6.1</option>
+                        <option value="6.0">6.0</option>
+                        <option value="5.1">5.1</option>
+                        <option value="5.0">5.0</option>
+                        <option value="4.0">4.0</option>
+                        <option value="3.0">3.0</option>
+                        <option value="2.0">2.0</option>
+                        <option value="1.3">1.3</option>
+                        <option value="1.2">1.2</option>
+                        <option value="1.0">1.0</option>
+                    </select>
+
+                    <label id="service-pack-label" for="service_pack">SP</label>
+                    <select id="service_pack" name="service_pack" disabled>
+                        <option value="-">-</option>
+                    </select>
+                </div>
+
+                <div id="sco-fields" hidden>
+                    <label for="adk_version">ADK</label>
+                    <input id="adk_version" name="adk_version"
+                        type="text" maxlength="10" disabled>
+
+                    <label for="tb_version">TB</label>
+                    <input id="tb_version" name="tb_version"
+                        type="text" maxlength="10" disabled>
+                </div>
+
+                <div id="iss45-fields" hidden>
+                    <label for="iss45_version">Version</label>
+                    <select id="iss45_version" name="iss45_version" disabled>
+                        <option value="">Select a version</option>
+                        <option value="V7">V7</option>
+                        <option value="V8">V8</option>
+                    </select>
+                </div>
+
+                <div id="connected-payments-fields" hidden>
+                    <label for="pos_dll">POS DLL</label>
+                    <input id="pos_dll" name="pos_dll"
+                        type="text" maxlength="10" disabled>
+
+                    <label for="eps_dll">EPS DLL</label>
+                    <input id="eps_dll" name="eps_dll"
+                        type="text" maxlength="10" disabled>
+                </div>
+            </div>
+            <button type="submit">Create Incident</button>
+        </form>
+    </main>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const typeSelect = document.getElementById("ticket_type");
+    const versionFields = document.getElementById("version-fields");
+
+    const groups = {
+        "ENCOR": document.getElementById("encor-fields"),
+        "SCO": document.getElementById("sco-fields"),
+        "ISS45": document.getElementById("iss45-fields"),
+        "Connected Payments": document.getElementById("connected-payments-fields")
+    };
+
+    const versionSelect = document.getElementById("version");
+    const servicePackSelect = document.getElementById("service_pack");
+    const servicePackLabel = document.getElementById("service-pack-label");
+
+    const servicePacks = {
+        "17.0": ["SP4", "SP3", "SP2", "SP1"],
+        "16.0": ["SP11", "SP10", "SP9", "SP8", "SP7", "SP6", "SP5", "SP4", "SP3", "SP2", "SP1"],
+        "15.0": ["SP21", "SP20", "SP19", "SP18", "SP17", "SP16", "SP15", "SP14", "SP13", "SP12", "SP11", "SP10", "SP9", "SP8", "SP7", "SP6", "SP5", "SP4", "SP3", "SP2", "SP1"],
+        "14.0": ["SP23", "SP22", "SP21", "SP20", "SP19", "SP18", "SP17", "SP16", "SP15", "SP14", "SP13", "SP12", "SP11", "SP10", "SP9", "SP8", "SP7", "SP6", "SP5", "SP4", "SP3", "SP2", "SP1"],
+        "13.0": ["HF17", "HF16", "HF15", "HF14", "HF13.1", "HF12", "HF11", "HF10", "HF9", "HF8", "HF7", "HF2"],
+        "12.1": ["HF8", "HF7", "HF6", "HF5"]
+    };
+
+    function updateServicePacks() {
+        const version = versionSelect.value;
+        const isHotfix = version.startsWith("12.") || version.startsWith("13.");
+        servicePackLabel.textContent = isHotfix ? "HF" : "SP";
+
+        servicePackSelect.innerHTML = "";
+
+        if (parseFloat(version) < 12 || !version) {
+            servicePackSelect.disabled = true;
+            servicePackLabel.hidden = true;
+            servicePackSelect.hidden = true;
+            return;
+        }
+
+        servicePackLabel.hidden = false;
+        servicePackSelect.hidden = false;
+        servicePackSelect.disabled = false;
+
+        const options = servicePacks[version] || [];
+        const dash = document.createElement("option");
+        dash.value = "-";
+        dash.textContent = "-";
+        servicePackSelect.appendChild(dash);
+
+        options.forEach(function (pack) {
+            const option = document.createElement("option");
+            option.value = pack;
+            option.textContent = pack;
+            servicePackSelect.appendChild(option);
+        });
+    }
+
+    function updateFields() {
+        const selectedType = typeSelect.value;
+
+        versionFields.hidden = !selectedType;
+
+        Object.entries(groups).forEach(function ([type, group]) {
+            group.hidden = type !== selectedType;
+            group.querySelectorAll("input, select").forEach(function (field) {
+                field.disabled = type !== selectedType;
+            });
+        });
+
+        if (selectedType === "ENCOR") {
+            versionSelect.disabled = false;
+            updateServicePacks();
+        }
+    }
+
+    typeSelect.addEventListener("change", updateFields);
+    versionSelect.addEventListener("change", updateServicePacks);
+
+    updateFields();
+});
+</script>
+</body>
+</html>
