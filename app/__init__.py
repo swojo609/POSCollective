@@ -225,7 +225,24 @@ def create_app():
         else:
             query = query.order_by(sort_column.asc(), models.Ticket.id.asc())
 
-        tickets = query.all()
+        page = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", 25, type=int)
+
+        if page < 1:
+            page = 1
+
+        if per_page not in (10, 25, 50, 100):
+            per_page = 25
+
+        pagination = query.paginate(
+            page=page,
+            per_page=per_page,
+            error_out=False,
+        )
+
+        tickets = pagination.items
+
+        # tickets = query.all()
 
         return render_template(
             "dashboard.html",
@@ -233,6 +250,8 @@ def create_app():
             current_status=status,
             sort_by=sort_by,
             direction=direction,
+            pagination=pagination,
+            per_page=per_page,
         )
         # return "POSCollective dashboard - login successful."
 

@@ -8,7 +8,14 @@
 </head>
 <body>
     <header>
+    
     <h1>POS Collective</h1>
+    <button type="button" id="theme-toggle" class="theme-switch" role="switch" aria-checked="false" aria-label="Toggle dark mode">
+    <span class="theme-icon" aria-hidden="true">☼</span>
+    <span class="theme-icon" aria-hidden="true">☾</span>
+    <span class="theme-switch-knob"></span>
+    </button>
+
     <h2>POS Support Incident Board</h2>
 
     {% if current_user.role == "Owner" %}
@@ -23,23 +30,79 @@
     <main>
         <h2>Tickets</h2>
 
+
         <nav aria-label="Ticket status filters">
+            <a href="{{ url_for('dashboard', status='all', sort=sort_by, direction=direction, per_page=per_page) }}">All</a>
+            <a href="{{ url_for('dashboard', status='Open', sort=sort_by, direction=direction, per_page=per_page) }}">Open</a>
+            <a href="{{ url_for('dashboard', status='Closed', sort=sort_by, direction=direction, per_page=per_page) }}">Closed</a>
+        </nav>
+
+        <div class="pagination-controls">
+            <form method="get" action="{{ url_for('dashboard') }}">
+                <input type="hidden" name="status" value="{{ current_status }}">
+                <input type="hidden" name="sort" value="{{ sort_by }}">
+                <input type="hidden" name="direction" value="{{ direction }}">
+
+                <label for="per_page">Tickets per page:</label>
+                <select name="per_page" id="per_page" onchange="this.form.submit()">
+                    <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                    <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                </select>
+            </form>
+
+            <div>
+                {% if pagination.total > 0 %}
+                    Showing {{ pagination.first }}–{{ pagination.last }}
+                    of {{ pagination.total }} tickets
+                {% else %}
+                    No tickets to display
+                {% endif %}
+            </div>
+
+            <div class="pagination-navigation">
+                {% if pagination.has_prev %}
+                    <a href="{{ url_for('dashboard', status=current_status, sort=sort_by, direction=direction, per_page=per_page, page=pagination.prev_num) }}">Previous</a>
+                {% endif %}
+
+                {% for page_num in pagination.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num == pagination.page %}
+                            <strong>{{ page_num }}</strong>
+                        {% else %}
+                            <a href="{{ url_for('dashboard', status=current_status, sort=sort_by, direction=direction, per_page=per_page, page=page_num) }}">{{ page_num }}</a>
+                        {% endif %}
+                    {% else %}
+                        <span>…</span>
+                    {% endif %}
+                {% endfor %}
+
+                {% if pagination.has_next %}
+                    <a href="{{ url_for('dashboard', status=current_status, sort=sort_by, direction=direction, per_page=per_page, page=pagination.next_num) }}">Next</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <table>
+
+        <!-- <nav aria-label="Ticket status filters">
             <a href="{{ url_for('dashboard', status='all' )}}">All</a>
             <a href="{{ url_for('dashboard', status='Open' )}}">Open</a>
             <a href="{{ url_for('dashboard', status='Closed' )}}">Close</a>
-        </nav>
+        </nav> -->
         <table>
             <thead>
                 <tr>
-                    <th><a href="{{ url_for('dashboard', status=current_status, sort='ticket_key', direction='asc' if sort_by == 'ticket_key' and direction == 'desc' else 'desc') }}">Ticket ID</a></th>
-                    <th><a href="{{ url_for('dashboard', status=current_status, sort='created_by', direction='asc' if sort_by == 'created_by' and direction == 'desc' else 'desc') }}">Created By</a></th>
-                    <th><a href="{{ url_for('dashboard', status=current_status, sort='updated_at', direction='asc' if sort_by == 'updated_at' and direction == 'desc' else 'desc') }}">Updated</a></th>
-                    <th><a href="{{ url_for('dashboard', status=current_status, sort='ncr_case_number', direction='asc' if sort_by == 'ncr_case_number' and direction == 'desc' else 'desc') }}">NCR Case #</a></th>
-                    <th><a href="{{ url_for('dashboard', status=current_status, sort='title', direction='asc' if sort_by == 'title' and direction == 'desc' else 'desc') }}">Title</a></th>
-                    <th><a href="{{ url_for('dashboard', status=current_status, sort='ticket_type', direction='asc' if sort_by == 'ticket_type' and direction == 'desc' else 'desc') }}">Type</a></th>
-                    <th><a href="{{ url_for('dashboard', status=current_status, sort='versions', direction='asc' if sort_by == 'versions' and direction == 'desc' else 'desc') }}">Version(s)</a></th>
-                    <th><a href="{{ url_for('dashboard', status=current_status, sort='hardware_software', direction='asc' if sort_by == 'hardware_software' and direction == 'desc' else 'desc') }}">HW/SW</a></th>
-                    <th><a href="{{ url_for('dashboard', status=current_status, sort='status', direction='asc' if sort_by == 'status' and direction == 'desc' else 'desc') }}">Status</a></th>
+                    <th><a href="{{ url_for('dashboard', status=current_status, sort='ticket_key', direction='asc' if sort_by == 'ticket_key' and direction == 'desc' else 'desc', per_page=per_page) }}">Ticket ID</a></th>
+                    <th><a href="{{ url_for('dashboard', status=current_status, sort='created_by', direction='asc' if sort_by == 'created_by' and direction == 'desc' else 'desc', per_page=per_page) }}">Created By</a></th>
+                    <th><a href="{{ url_for('dashboard', status=current_status, sort='updated_at', direction='asc' if sort_by == 'updated_at' and direction == 'desc' else 'desc', per_page=per_page) }}">Updated</a></th>
+                    <th><a href="{{ url_for('dashboard', status=current_status, sort='ncr_case_number', direction='asc' if sort_by == 'ncr_case_number' and direction == 'desc' else 'desc', per_page=per_page) }}">NCR Case #</a></th>
+                    <th><a href="{{ url_for('dashboard', status=current_status, sort='title', direction='asc' if sort_by == 'title' and direction == 'desc' else 'desc', per_page=per_page) }}">Title</a></th>
+                    <th><a href="{{ url_for('dashboard', status=current_status, sort='ticket_type', direction='asc' if sort_by == 'ticket_type' and direction == 'desc' else 'desc', per_page=per_page) }}">Type</a></th>
+                    <th><a href="{{ url_for('dashboard', status=current_status, sort='versions', direction='asc' if sort_by == 'versions' and direction == 'desc' else 'desc', per_page=per_page) }}">Version(s)</a></th>
+                    <th><a href="{{ url_for('dashboard', status=current_status, sort='hardware_software', direction='asc' if sort_by == 'hardware_software' and direction == 'desc' else 'desc', per_page=per_page) }}">HW/SW</a></th>
+                    <th><a href="{{ url_for('dashboard', status=current_status, sort='status', direction='asc' if sort_by == 'status' and direction == 'desc' else 'desc', per_page=per_page) }}">Status</a></th>
                 </tr>
             </thead>
             <tbody>
@@ -51,7 +114,7 @@
                     <td>{{ ticket.ncr_case_number or "-" }}</td>
                     <td>{{ ticket.title }}</td>
                     <td>{{ ticket.ticket_type }}</td>
-                    <td>{{ ticket.versions | map(atttributes='version') | unique | join(', ') or "-" }}</td>
+                    <td>{{ ticket.versions | map(atttribute='version') | unique | join(', ') or "-" }}</td>
                     <td>{{ ticket.hardware_software or "-" }}</td>
                     <td>{{ ticket.status }}</td>
                 </tr>
@@ -63,5 +126,6 @@
             </tbody>
         </table>
     </main>
+    <script src="{{ url_for('static', filename='js/theme.js')  }}"></script>
 </body>
 </html>
