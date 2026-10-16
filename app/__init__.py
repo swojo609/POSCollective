@@ -337,6 +337,92 @@ def create_app():
     @login_required
     def ticket_detail(ticket_id):
         ticket = models.Ticket.query.get_or_404(ticket_id)
+    
         return render_template("ticket_detail.html", ticket=ticket)
-                                          
+
+    @app.route("/tickets/<int:ticket_id>/versions/add", methods=["POST"])
+    @login_required
+    def add_ticket_version(ticket_id):
+        ticket = models.Ticket.query.get_or_404(ticket_id)
+
+        if ticket.ticket_type == "ENCOR":
+            version = request.form.get("version", "").strip()
+            service_pack = request.form.get("service_pack", "").strip()
+
+            if not version:
+                flash("Please select a version.", "error")
+                return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+            ticket_version = models.TicketVersion(
+                ticket_id=ticket.id,
+                version=version,
+                service_pack=None if service_pack in ("", "-") else service_pack,
+            )
+
+        elif ticket.ticket_type =="SCO":
+            adk_version = request.form.get("adk_version", "").strip()
+            tb_version = request.form.get("tb_version", "").strip()
+
+            if not adk_version and not tb_version:
+                flash("Enter an ADK or TB version.", "error"),
+                return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+            ticket_version = models.Ticketversion(
+                ticket_id=ticket.id,
+                version=f"ADK{adk_version} TB{tb_version}",
+            )
+
+        elif ticket.ticket_type == "ISS45":
+            version = request.form.get("version", "").strip()
+
+            if version not in ("V7", "V8"):
+                flash("Please select V7 or V8.", "error")
+                return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+            ticket_version = models.TicketVersion(
+                ticket_id=ticket.id,
+                version=version,
+            )
+
+        elif ticket.ticket_type == "Connected Payments":
+            pos_dll = request.form.get("pos_dll", "").strip()
+            eps_dll = request.form.get("eps_dll", "").strip()
+
+            if not pos_dll and not eps_dll:
+                flash("Enter a POS DLL or EPS DLL.", "error")
+                return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+            ticket_version = models.TicketVersion(
+                ticket_id=ticket.id,
+                version=f"POS{pos_dll} EPS{eps_dll}",
+            )
+
+        else:
+            flash("Unsupported incident type.", "error")
+            return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+        db.session.add(ticket_version)
+        db.session.commit()
+
+        flash("Software version added successfully.", "success")
+        return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+    @app.route("/tickets/<int:ticket_id>/versions/<int:version_id>/remove", methods=["POST"])
+    @login_required
+    def remove_ticket_version(ticket_id, version_id):
+        ticket = models.Ticket.query.get_or_404(ticket_id)
+
+        version = models.TicketVersion.query.filter_by(
+            id=version_id,
+            ticket_id=ticket.id,
+        ).first_or_404()
+
+        db.session.delete(version)
+        db.session.commit()
+
+        flash("Software version remove.", "success")
+        return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+
+
     return app
