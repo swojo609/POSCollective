@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit {{ ticket.ticket_key }} - POSCollective</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/theme.js') }}" defer></script>
+</head>
+<body>
+    <main class="container">
+        <p><a href="{{ url_for('ticket_detail', ticket_id=ticket.id) }}">← Cancel and Return to Ticket</a></p>
+
+        <h1>Edit {{ ticket.ticket_key }}</h1>
+
+        <form method="POST" class="ticket-form">
+            <label for="title">Title</label>
+            <input
+                id="title"
+                name="title"
+                type="text"
+                maxlength="255"
+                value="{{ request.form.get('title', ticket.title) }}"
+                required
+            >
+
+            <label for="description">Description</label>
+            <textarea
+                id="description"
+                name="description"
+                rows="6"
+            >{{ request.form.get('description', ticket.description or '') }}</textarea>
+
+            <label for="priority">Priority</label>
+            <select id="priority" name="priority" required>
+                {% for option in ["Low", "Medium", "High", "Critical"] %}
+                    <option
+                        value="{{ option }}"
+                        {% if request.form.get('priority', ticket.priority or 'Medium') == option %}selected{% endif %}
+                    >{{ option }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Save Changes</button>
+        </form>
+    </main>
+</body>
+</html>

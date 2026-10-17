@@ -10,6 +10,7 @@
 <body>
     <main class="container">
         <p><a href="{{ url_for('dashboard') }}">← Back to Dashboard</a></p>
+        <p><a href="{{ url_for('edit_ticket', ticket_id=ticket.id) }}">Edit Ticket</a></p>
 
         <h1>{{ ticket.ticket_key }} — {{ ticket.title }}</h1>
 
@@ -86,6 +87,36 @@
             <button type="submit">Add Version</button>
         </form>
 
+        <hr>
+        <h2>Internal Comments</h2>
+
+        {% if ticket.internal_comments %}
+            <ul>
+                {% for comment in ticket.internal_comments %}
+                    <li>
+                        <p>{{ comment.body }}</p>
+                        <small>
+                            By {{ comment.user.username if comment.user else "Unknown user" }}
+                            on {{ comment.created_at.strftime("%Y-%m-%d %H:%M") }}
+                        </small>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No internal comments yet.</p>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('add_internal_comment', ticket_id=ticket.id) }}">
+            <label for="comment">Add a comment</label>
+            <textarea
+                id="comment"
+                name="comment"
+                rows="4"
+                required
+            ></textarea>
+
+            <button type="submit">Add Comment</button>
+        </form>
     </main>
 
 <script>

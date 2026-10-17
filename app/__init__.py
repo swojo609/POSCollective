@@ -340,6 +340,29 @@ def create_app():
     
         return render_template("ticket_detail.html", ticket=ticket)
 
+    @app.route("/tickets/<int:ticket_id>/edit", methods=(["GET", "POST"]))
+    @login_required
+    def edit_ticket(ticket_id):
+        ticket = models.Ticket.query.get_or_404(ticket_id)
+
+        if request.method == "POST":
+            title = request.form.get("title", "").strip()
+
+            if not title:
+                flash("Title is required.", "error")
+                return render_template("edit_ticket.html", ticket=ticket)
+
+            ticket.title = title
+            ticket.description = request.form.get("description", "").strip()
+            ticket.priority = request.form.get("priority", "").strip()
+
+            db.session.commit()
+
+            flash("Ticket updated successfully.", "success")
+            return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+        return render_template("edit_ticket.html", ticket=ticket)
+    
     @app.route("/tickets/<int:ticket_id>/versions/add", methods=["POST"])
     @login_required
     def add_ticket_version(ticket_id):
@@ -406,6 +429,33 @@ def create_app():
 
         flash("Software version added successfully.", "success")
         return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+# Tech discussion
+    @app.route("/tickets/<int:ticket_id>/comments", methods=["POST"])
+    @login_required
+    def add_internal_comment(ticket_id):
+        ticket=models.Ticket.query.get_or_404(ticket_id)
+
+        comment_text = request.form.get("comment", "").strip()
+
+        if not comment_text:
+            flash("Comment cannot be empty.", "error")
+            return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+        comment = models.InternalComment(
+            ticket_id=ticket.id,
+            user_id=current_user.id,
+            body=comment_text,
+        )
+
+        db.session.add(comment)
+        db.session.commit()
+
+        flash("Internal comment added.", "success")
+        return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+# NCR Discussion
+
+
+
 
     @app.route("/tickets/<int:ticket_id>/versions/<int:version_id>/remove", methods=["POST"])
     @login_required

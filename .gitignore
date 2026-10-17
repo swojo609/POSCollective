@@ -11,3 +11,4 @@ instance/
 .open_venv.bat
 .db_upgrade.bat
 .roadmap.txt
+.disclaimer.txt
