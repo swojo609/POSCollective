@@ -94,7 +94,37 @@
             <ul>
                 {% for comment in ticket.internal_comments %}
                     <li>
-                        <p>{{ comment.body }}</p>
+                        
+                        
+                            <p>{{ comment.body }}</p>
+
+
+                        <form method="POST"
+                              action="{{ url_for('edit_internal_comment',
+                                                 ticket_id=ticket.id,
+                                                 comment_id=comment.id) }}">
+                            <label for="edit-internal-{{ comment.id }}">
+                                Edit comment
+                            </label>
+                            <textarea
+                                id="edit-internal-{{ comment.id }}"
+                                name="comment"
+                                rows="3"
+                                required
+                            >{{ comment.body }}</textarea>
+                            <button type="submit">Save Edit</button>
+                        </form>
+
+                        {% if current_user.role == "Owner" %}
+                            <form method="POST"
+                                  action="{{ url_for('delete_internal_comment',
+                                                     ticket_id=ticket.id,
+                                                     comment_id=comment.id) }}"
+                                  onsubmit="return confirm('Remove this comment?');">
+                                <button type="submit">Remove Comment</button>
+                            </form>
+                        {% endif %}
+
                         <small>
                             By {{ comment.user.username if comment.user else "Unknown user" }}
                             on {{ comment.created_at.strftime("%Y-%m-%d %H:%M") }}
@@ -117,6 +147,188 @@
 
             <button type="submit">Add Comment</button>
         </form>
+        <hr>
+        <h2>NCR Discussion</h2>
+
+        <p>
+            Share relevant NCR case details, technical findings, and troubleshooting
+            information with other authorized POSCollective technicians.
+        </p>
+
+        <h3>Start a Discussion</h3>
+
+        <form method="POST"
+              action="{{ url_for('add_ncr_discussion', ticket_id=ticket.id) }}">
+
+            <label for="ncr-subject">Discussion Subject</label>
+            <input
+                type="text"
+                id="ncr-subject"
+                name="subject"
+                maxlength="200"
+                required
+            >
+
+            <label for="ncr-comment">Message</label>
+            <textarea
+                id="ncr-comment"
+                name="comment"
+                rows="4"
+                required
+            ></textarea>
+
+            <fieldset>
+                <legend>Voluntary Sharing Acknowledgment</legend>
+
+                <p>
+                    By posting, you acknowledge that you are voluntarily sharing
+                    information you participated in or are authorized to share.
+                    You are responsible for ensuring your contribution complies
+                    with applicable confidentiality, privacy, and information-
+                    handling requirements.
+                </p>
+
+                <p>
+                    POSCollective is intended as a collaborative discussion space
+                    for experienced POS support technicians to share technical
+                    findings and improve customer support. Posts may be incomplete
+                    or unverified and are not official NCR statements or guaranteed
+                    solutions. To the extent permitted by law, POSCollective and
+                    its operators disclaim responsibility for reliance on user-
+                    submitted information. This notice does not exclude liability
+                    that cannot legally be excluded.
+                </p>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        name="acknowledge_sharing"
+                        value="yes"
+                        required
+                    >
+                    I understand and acknowledge the voluntary-sharing notice.
+                </label>
+            </fieldset>
+
+            <button type="submit">Start Discussion</button>
+        </form>
+
+        {% if ticket.ncr_threads %}
+            <h3>Discussion Topics</h3>
+
+            {% for thread in ticket.ncr_threads %}
+                <article>
+                    
+                    <h4>{{ thread.subject }}</h4>
+
+                    <form method="POST"
+                          action="{{ url_for('edit_ncr_discussion',
+                                             ticket_id=ticket.id,
+                                             thread_id=thread.id) }}">
+                        <label for="edit-subject-{{ thread.id }}">
+                            Edit discussion subject
+                        </label>
+                        <input
+                            type="text"
+                            id="edit-subject-{{ thread.id }}"
+                            name="subject"
+                            value="{{ thread.subject }}"
+                            maxlength="200"
+                            required
+                        >
+                        <button type="submit">Save Subject</button>
+                    </form>
+
+                    {% if current_user.role == "Owner" %}
+                        <form method="POST"
+                              action="{{ url_for('delete_ncr_discussion',
+                                                 ticket_id=ticket.id,
+                                                 thread_id=thread.id) }}"
+                              onsubmit="return confirm('Remove this discussion and all its replies?');">
+                            <button type="submit">Remove Discussion</button>
+                        </form>
+                    {% endif %}
+
+
+                    <p>
+                        <strong>NCR Case:</strong>
+                        {{ thread.case_number or "Not specified" }}
+                    </p>
+
+                    {% for comment in thread.comments %}
+                        <div>
+                            <p>{{ comment.body }}</p>
+
+                            <form method="POST"
+                                  action="{{ url_for('edit_ncr_discussion_reply',
+                                                     ticket_id=ticket.id,
+                                                     thread_id=thread.id,
+                                                     comment_id=comment.id) }}">
+                                <label for="edit-reply-{{ comment.id }}">
+                                    Edit reply
+                                </label>
+                                <textarea
+                                    id="edit-reply-{{ comment.id }}"
+                                    name="comment"
+                                    rows="3"
+                                    required
+                                >{{ comment.body }}</textarea>
+                                <button type="submit">Save Reply</button>
+                            </form>
+
+                            {% if current_user.role == "Owner" %}
+                                <form method="POST"
+                                      action="{{ url_for('delete_ncr_discussion_reply',
+                                                         ticket_id=ticket.id,
+                                                         thread_id=thread.id,
+                                                         comment_id=comment.id) }}"
+                                      onsubmit="return confirm('Remove this reply?');">
+                                    <button type="submit">Remove Reply</button>
+                                </form>
+                            {% endif %}
+
+                            <small>
+                                By {{ comment.author_name or "Unknown user" }}
+                                on
+                                {{ comment.comment_date.strftime("%Y-%m-%d %H:%M") }}
+                            </small>
+                        </div>
+                    {% endfor %}
+
+                    <h5>Reply</h5>
+
+                    <form method="POST"
+                          action="{{ url_for('add_ncr_discussion_reply',
+                                             ticket_id=ticket.id,
+                                             thread_id=thread.id) }}">
+
+                        <label for="reply-{{ thread.id }}">Message</label>
+                        <textarea
+                            id="reply-{{ thread.id }}"
+                            name="comment"
+                            rows="3"
+                            required
+                        ></textarea>
+
+                        <label>
+                            <input
+                                type="checkbox"
+                                name="acknowledge_sharing"
+                                value="yes"
+                                required
+                            >
+                            I acknowledge the voluntary-sharing notice above.
+                        </label>
+
+                        <button type="submit">Post Reply</button>
+                    </form>
+                </article>
+                <hr>
+            {% endfor %}
+        {% else %}
+            <p>No NCR discussion topics yet.</p>
+        {% endif %}
+
     </main>
 
 <script>

@@ -453,11 +453,242 @@ def create_app():
         flash("Internal comment added.", "success")
         return redirect(url_for("ticket_detail", ticket_id=ticket.id))
 # NCR Discussion
+    @app.route("/tickets/<int:ticket_id>/ncr-discussion", methods=["POST"])
+    @login_required
+    def add_ncr_discussion(ticket_id):
+        ticket = models.Ticket.query.get_or_404(ticket_id)
+        subject = request.form.get("subject", "").strip()
+        comment_text = request.form.get("comment", "").strip()
+        acknowledged = request.form.get("acknowledge_sharing") == "yes"
 
+        if not acknowledged:
+            flash(
+                "Please acknowledge the voluntary-sharing notice before posting.",
+                "error",
+            )
+            return redirect(url_for("ticket_detail", ticket_id=ticket.id))
 
+        if not subject or not comment_text:
+            flash("A discussion subject and message are required.", "error")
+            return redirect(url_for("ticket_detail", ticket_id=ticket.id))
 
+        thread = models.NCRThread(
+            ticket_id=ticket.id,
+            case_number=ticket.ncr_case_number,
+            subject=subject,
+            ncr_state=ticket.ncr_state,
+        )
+        thread.comments.append(
+            models.NCRComment(
+                author_name=current_user.full_name or current_user.username,
+                author_user_id=current_user.id,
+                body=comment_text,
+                comment_date=models.utc_now(),
+            )
+        )
 
-    @app.route("/tickets/<int:ticket_id>/versions/<int:version_id>/remove", methods=["POST"])
+        db.session.add(thread)
+        db.session.commit()
+
+        flash("NCR discussion topic created.", "success")
+        return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+    @app.route(
+        "/tickets/<int:ticket_id>/ncr-discussion/<int:thread_id>/comments",
+        methods=["POST"],
+    )
+    @login_required
+    def add_ncr_discussion_reply(ticket_id, thread_id):
+        ticket = models.Ticket.query.get_or_404(ticket_id)
+        thread = models.NCRThread.query.filter_by(
+            id=thread_id,
+            ticket_id=ticket.id,
+        ).first_or_404()
+
+        comment_text = request.form.get("comment", "").strip()
+        acknowledged = request.form.get("acknowledge_sharing") == "yes"
+
+        if not acknowledged:
+            flash(
+                "Please acknowledge the voluntary-sharing notice before posting.",
+                "error",
+            )
+            return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+        if not comment_text:
+            flash("Reply cannot be empty.", "error")
+            return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+        comment = models.NCRComment(
+            thread_id=thread.id,
+            author_name=current_user.full_name or current_user.username,
+            author_user_id=current_user.id,
+            body=comment_text,
+            comment_date=models.utc_now(),
+        )
+
+        db.session.add(comment)
+        db.session.commit()
+
+        flash("NCR discussion reply added.", "success")
+        return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+# Comment and NCR Discussion management
+
+    def is_discussion_owner():
+        return getattr(current_user, "role", "") == "Owner"
+
+    @app.route(
+            "/tickets/<int:ticket_id>/internal-comments/<int:comment_id>/edit",
+            methods=["POST"],
+    )
+    @login_required
+    def edit_internal_comment(ticket_id, comment_id):
+        ticket = models.Ticket.query.get_or_404(ticket_id)
+        comment = models.InternalComment.query.filter_by(
+            id=comment_id,
+            ticket_id=ticket.id,
+        ).first_or_404()
+
+        if comment.user_id != current_user.id and not is_discussion_owner():
+            flash("You are not authorized to edit this comment.", "error")
+            return redirect(url_for("ticket_detial", ticket_id=ticket.id))
+
+        body = request.form.get("comment", "").strip()
+        if not body:
+            flash("Comment cannot be empty.", "error")
+            return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+        comment.body = body
+        db.session.commit()
+        flash("Internal comment updated.", "success")
+        return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+    @app.route(
+            "/tickets/<int:ticket_id>/internal-comments/<int:comment_id>/delete",
+            methods=["POST"],
+    )
+    @login_required
+    def delete_internal_comment(ticket_id, comment_id):
+        ticket = models.Ticket.query.get_or_404(ticket_id)
+        comment = models.InternalComment.query.filter_by(
+            id=comment_id,
+            ticket_id=ticket_id,
+        ).first_or_404()
+
+        if not is_discussion_owner():
+            flash("Only the Owner can remove comments.", "error")
+            return redirect(url_for("ticket_detial", ticket_id=ticket.id))
+
+        db.session.delete(comment)
+        db.session.commit()
+        flash("Internal comment removed.", "success")
+        return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+    @app.route(
+            "/tickets/<int:ticket_id>/ncr-discussion/<int:thread_id>/edit",
+            methods=["POST"],
+    )
+    @login_required
+    def edit_ncr_discussion(ticket_id, thread_id):
+        ticket = models.Ticket.query.get_or_404(ticket_id)
+        thread = models.NCRThread.query.filter_by(
+            id=thread.id,
+            ticket_id=ticket.id,
+        ).first_or_404()
+
+        first_comment = thread.comments[0] if thread.comments else None
+        is_author = (
+            first_comment is not None
+            and first_comment.author_user_id == current_user.id
+        )
+
+        if not is_author and not is_discussion_owner():
+            flash("You are not authorized to edit this discussion.", "error")
+            return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+        subject = request.form.get("subject", "").strip()
+        if not subject:
+            flash("Discussion subject cannot be empty.", "error")
+            return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+        thread.subject = subject
+        db.session.commit()
+        flash("Discussion subject updated.", "success")
+        return redirect("ticket_detail", ticket_id=ticket.id)
+
+    @app.route(
+            "/tickets/<int:ticket_id>/ncr-discussion/<int:thread_id>/comments/<int:comment_id>/edit",
+            methods=["POST"],
+    )
+    @login_required
+    def edit_ncr_discussion_reply(ticket_id, thread_id, comment_id):
+        ticket = models.Ticket.query.get_or_404(ticket_id)
+        thread = models.NCRThread.query.filter_by(
+            id=thread_id,
+            ticket_id=ticket.id,
+        ).first_or_404()
+        comment = models.NCRComment.query.filter_by(
+            id=comment_id,
+            thread_id=thread.id,
+        ).first_or_404()
+
+        if (
+            comment.author_user_id != current_user.id
+            and not is_discussion_owner()
+        ):
+            flash("You are not autho9rized to edit this reply.", "error")
+            return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+    @app.route(
+            "/tickets/<int:ticket_id>/ncr-discussion/<int:thread_id>/comments/<int:comment_id>/delete",
+            methods=["POST"],
+    )
+    @login_required
+    def delete_ncr_discussion_reply(ticket_id, thread_id, comment_id):
+        ticket = models.Ticket.query.get_or_404(ticket_id)
+        thread = models.NCRThread.query.filter_by(
+            id=thread_id,
+            ticket_id=ticket.id,
+        ).first_or_404()
+        comment = models.NCRComment.query.filter_by(
+            id=comment_id,
+            thread_id=thread.id,
+        ).first_or_404()
+
+        if not is_discussion_owner():
+            flash("Only the Owner can remove replies.", "error")
+            return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+        db.session.delete(comment)
+        db.session.commit()
+        flash("NCR discussion reply removed.", "success")
+        return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+    @app.route(
+            "/tickets/<int:ticket_id>/ncr-discussion/<int:thread_id>/delete",
+            methods=["POST"],
+    )
+    @login_required
+    def delete_ncr_discussion(ticket_id, thread_id):
+        ticket = models.Ticket.query.get_or_404(ticket_id)
+        thread = models.NCRThread.query.filter_by(
+            id=thread_id,
+            ticket_id=ticket.id,
+        ).first_or_404()
+
+        if not is_discussion_owner():
+            flash("Only the Owner can remove discussions.", "error")
+            return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+
+        db.session.delete(thread)
+        db.session.commit()
+        flash("Discussion and its replies removed.", "success")
+        return redirect(url_for("ticket_detail", ticket_id=ticket.id))
+    
+# Remove comment
+    @app.route("/tickets/<int:ticket_id>/versions/<int:version_id>/remove",
+               methods=["POST"]
+    )
     @login_required
     def remove_ticket_version(ticket_id, version_id):
         ticket = models.Ticket.query.get_or_404(ticket_id)
