@@ -92,6 +92,34 @@ def create_app():
 
         return redirect(url_for("admin_users"))
 
+    @app.route("/admin/users/<int:user_id>/delete", methods=["POST"])
+    @login_required
+    def delete_user(user_id):
+        if current_user.role != "Owner":
+            flash("You are not authorized to delete user accounts", "error")
+            return redirect(url_for("dashboard"))
+
+        user = db.session.get(models.User, user_id)
+        if user is None:
+            flash("User not found.", "error")
+            return redirect(url_for("admin_users"))
+
+        if user.id == current_user.id:
+            flash("You cannot delete your own account.", "error")
+            return redirect(url_for("admin_users"))
+
+        if user.role == "Owner":
+            owner_count = models.User.query.filter_by(role="Owner").count()
+            if owner_count <= 1:
+                flash("You cannot delete the last Owner account.", "error")
+                return redirect(url_for("admin_users"))
+
+        flash(
+            "Account deletion is not enabled yet. No account was deleted.",
+            "error",
+        )
+        return redirect(url_for("admin_users"))
+
     @app.route("/")
     def index():
         # if not login_required:
@@ -280,9 +308,9 @@ def create_app():
                 encor_jira_na=request.form.get("encor_jira_na") == "yes",
                 ticket_type=ticket_type,
                 priority=request.form.get("priority", "Medium"),
-                # site=request.form.get("site", "").strip() or None,
                 hardware_software=request.form.get("hardware_software") or None,
                 created_by_id=current_user.id,
+                created_by_name=current_user.full_name or current_user.username,
             )
 
             db.session.add(ticket)

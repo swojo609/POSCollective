@@ -75,9 +75,10 @@ class Ticket(db.Model):
 
     created_by_id = db.Column(
         db.Integer,
-        db.ForeignKey("users.id"),
-        nullable=False,
+        db.ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
     )
+    created_by_name = db.Column(db.String(255), nullable=True)
     closed_at = db.Column(db.DateTime(timezone=True))
 
     created_by = db.relationship("User", foreign_keys=[created_by_id])
