@@ -17,6 +17,7 @@
 
     <main>
         <form method="post" class="ticket-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label for="title">Title *</label>
             <input id="title" name="title" type="text" required maxlength="255">
 

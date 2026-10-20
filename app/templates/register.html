@@ -19,6 +19,7 @@
     {% endwith %}
 
     <form method="POST" action="{{ url_for('register') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div>
             <label for="username">Email Address (used to log in)</label>
             <input type="email" id="username" name="username" required maxlength="255" autocomplete="email">

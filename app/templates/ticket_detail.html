@@ -36,6 +36,7 @@
                               action="{{ url_for('remove_ticket_version', ticket_id=ticket.id, version_id=version.id) }}"
                               style="display: inline;"
                               onsubmit="return confirm('Remove this software version?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit">Remove</button>
                         </form>
                     </li>
@@ -47,6 +48,7 @@
         <h2>Add Software Version</h2>
 
         <form method="POST" action="{{ url_for('add_ticket_version', ticket_id=ticket.id) }}" class="ticket-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             {% if ticket.ticket_type == "ENCOR" %}
                 <label for="version">Version</label>
                 <select id="version" name="version" required>
@@ -103,6 +105,7 @@
                               action="{{ url_for('edit_internal_comment',
                                                  ticket_id=ticket.id,
                                                  comment_id=comment.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <label for="edit-internal-{{ comment.id }}">
                                 Edit comment
                             </label>
@@ -121,6 +124,7 @@
                                                      ticket_id=ticket.id,
                                                      comment_id=comment.id) }}"
                                   onsubmit="return confirm('Remove this comment?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit">Remove Comment</button>
                             </form>
                         {% endif %}
@@ -137,6 +141,7 @@
         {% endif %}
 
         <form method="POST" action="{{ url_for('add_internal_comment', ticket_id=ticket.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label for="comment">Add a comment</label>
             <textarea
                 id="comment"
@@ -159,6 +164,7 @@
 
         <form method="POST"
               action="{{ url_for('add_ncr_discussion', ticket_id=ticket.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <label for="ncr-subject">Discussion Subject</label>
             <input
@@ -225,6 +231,7 @@
                           action="{{ url_for('edit_ncr_discussion',
                                              ticket_id=ticket.id,
                                              thread_id=thread.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <label for="edit-subject-{{ thread.id }}">
                             Edit discussion subject
                         </label>
@@ -245,6 +252,7 @@
                                                  ticket_id=ticket.id,
                                                  thread_id=thread.id) }}"
                               onsubmit="return confirm('Remove this discussion and all its replies?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit">Remove Discussion</button>
                         </form>
                     {% endif %}
@@ -264,6 +272,7 @@
                                                      ticket_id=ticket.id,
                                                      thread_id=thread.id,
                                                      comment_id=comment.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <label for="edit-reply-{{ comment.id }}">
                                     Edit reply
                                 </label>
@@ -283,6 +292,8 @@
                                                          thread_id=thread.id,
                                                          comment_id=comment.id) }}"
                                       onsubmit="return confirm('Remove this reply?');">
+                                      
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit">Remove Reply</button>
                                 </form>
                             {% endif %}
@@ -301,6 +312,7 @@
                           action="{{ url_for('add_ncr_discussion_reply',
                                              ticket_id=ticket.id,
                                              thread_id=thread.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                         <label for="reply-{{ thread.id }}">Message</label>
                         <textarea

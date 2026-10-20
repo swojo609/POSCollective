@@ -4,6 +4,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_login import login_user, logout_user, login_required, current_user
+from flask_wtf.csrf import CSRFProtect
 
 from app.extensions import db, migrate, login_manager
 from app import models
@@ -24,7 +25,12 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 def create_app():
     app = Flask(__name__)
 
+    # Existing configuration, including your secret key
     app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
+
+    # Enable CSRF protection after configuring the secret key
+    CSRFProtect(app)
+
     app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["DATABASE_URL"]
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 

@@ -15,6 +15,7 @@
         <h1>Edit {{ ticket.ticket_key }}</h1>
 
         <form method="POST" class="ticket-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label for="title">Title</label>
             <input
                 id="title"
